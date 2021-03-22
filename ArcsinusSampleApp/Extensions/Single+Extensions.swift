@@ -8,15 +8,11 @@
 import RxSwift
 import RxCocoa
 
-extension PrimitiveSequence where Trait == SingleTrait {
+extension PrimitiveSequence where Trait == SingleTrait, Element == Result<Data, APIError> {
 	
 	func map<T: Decodable>(to type: T.Type, decodingStrategy: JSONDecoder.DateDecodingStrategy = .secondsSince1970,  haveHierarchy: Bool = false) -> Single<Result<T, APIError>> {
 		return flatMap { element -> Single<Result<T, APIError>> in
-			guard let value = element as? Result<Data, APIError> else {
-				throw NSError(domain: "test.ru", code: -101, userInfo: [NSLocalizedDescriptionKey: "Response is empty"])
-			}
-			
-			switch value {
+			switch element {
 			case .success(let json):
 				do {
 					guard let obj = try json.decode(as: T.self, decodingStrategy) else { return .just(.failure(.invalidData)) }
